@@ -1,106 +1,196 @@
-
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tính Tiền Điện Đơn Giản</title>
+    <title>Tính Điện Nước 4 Hộ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #f8fafc;
-            font-family: sans-serif;
+            background-color: #f1f5f9;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: bold;
         }
         .input-focus:focus {
             border-color: #3b82f6;
-            ring: 2px;
-            ring-color: #bfdbfe;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
     </style>
 </head>
-<body class="p-4">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 border border-gray-100">
-        <h1 class="text-2xl font-bold text-center text-blue-600 mb-6 uppercase tracking-tight">Tính Tiền Điện 4 Hộ</h1>
-        
-        <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p class="text-xs text-blue-800 font-bold mb-2 uppercase">Phương pháp tính:</p>
-            <p class="text-[11px] text-blue-700 leading-relaxed">
-                Chia sẻ định mức: 4 hộ cùng nhau dùng hết các bậc giá rẻ theo thứ tự. 
-                Hộ dùng ít chỉ trả giá bậc thấp. Hộ dùng nhiều trả phần vượt cấp.
-                <br><strong>(Đã bao gồm thuế VAT 8%)</strong>
-            </p>
-        </div>
-
-        <div class="space-y-4">
-            <!-- Nhập số kWh với tên riêng -->
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Nhà Thờ (Số kWh)</label>
-                <input type="number" id="kwh_1" class="w-full border rounded-lg p-2 input-focus outline-none" placeholder="0">
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Cô Hà (Số kWh)</label>
-                <input type="number" id="kwh_2" class="w-full border rounded-lg p-2 input-focus outline-none" placeholder="0">
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Chị Thu (Số kWh)</label>
-                <input type="number" id="kwh_3" class="w-full border rounded-lg p-2 input-focus outline-none" placeholder="0">
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Hoàng Anh (Số kWh)</label>
-                <input type="number" id="kwh_4" class="w-full border rounded-lg p-2 input-focus outline-none" placeholder="0">
-            </div>
-
-            <div class="pt-4">
-                <button onclick="calculateSharedTiers()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
-                    TÍNH TIỀN CHIA SẺ BẬC
+<body class="p-4 md:p-8">
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <!-- Header & Tabs -->
+        <div class="bg-white border-b">
+            <h1 class="text-xl font-black text-center py-6 text-gray-800 uppercase tracking-widest">Chi Phí Điện Nước</h1>
+            <div class="flex">
+                <button onclick="switchTab('electric')" id="tab-electric" class="flex-1 py-3 text-sm uppercase tracking-wider tab-active transition-all">
+                    ⚡ Điện
+                </button>
+                <button onclick="switchTab('water')" id="tab-water" class="flex-1 py-3 text-sm uppercase tracking-wider text-gray-500 hover:text-blue-500 transition-all border-b-2 border-transparent">
+                    💧 Nước
                 </button>
             </div>
         </div>
 
-        <!-- Kết quả -->
-        <div id="results" class="hidden mt-6 border-t pt-4 space-y-3">
-            <div id="bill_list"></div>
-            
-            <div class="mt-4 p-3 bg-gray-800 text-white rounded-lg flex justify-between font-bold">
-                <span>TỔNG CỘNG:</span>
-                <span id="grand_total">0đ</span>
+        <div class="p-6">
+            <!-- Hiển thị bảng giá các bậc -->
+            <div id="price-board" class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-blue-800 uppercase tracking-widest">Biểu giá áp dụng</span>
+                    <span id="price-unit" class="text-[10px] text-blue-600 font-bold uppercase">(đ/kWh)</span>
+                </div>
+                <div id="price-grid" class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-gray-700">
+                    <!-- Nội dung giá sẽ được cập nhật bằng JS -->
+                </div>
             </div>
-            <p class="text-[10px] text-gray-400 text-center italic mt-2">* Giá tính theo bậc thang + 8% thuế VAT</p>
+
+            <!-- Form Nhập Liệu -->
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Nhà Thờ</label>
+                        <div class="relative">
+                            <input type="number" id="val_1" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
+                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Cô Hà</label>
+                        <div class="relative">
+                            <input type="number" id="val_2" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
+                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Chị Thu</label>
+                        <div class="relative">
+                            <input type="number" id="val_3" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
+                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Hoàng Anh</label>
+                        <div class="relative">
+                            <input type="number" id="val_4" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
+                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="calculate()" id="btn-calc" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95 mt-4 uppercase tracking-widest text-sm">
+                    Tính Tiền Điện
+                </button>
+            </div>
+
+            <!-- Kết quả -->
+            <div id="results" class="hidden mt-8 space-y-4 animate-in fade-in duration-500">
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-[11px] text-gray-600">
+                    <div class="flex justify-between">
+                        <span>Tổng tiêu thụ (4 hộ):</span>
+                        <span id="total_usage" class="font-bold text-gray-800">0</span>
+                    </div>
+                </div>
+
+                <div id="bill_list" class="space-y-3"></div>
+                
+                <div class="p-4 bg-gray-900 rounded-2xl flex justify-between items-center shadow-xl border-t-4 border-yellow-500">
+                    <span class="text-white text-xs font-bold uppercase tracking-widest">Tổng hóa đơn thực tế</span>
+                    <span id="grand_total" class="text-yellow-400 font-black text-xl tracking-tight">0đ</span>
+                </div>
+                <p id="vat-note" class="text-[10px] text-gray-400 text-center italic leading-tight"></p>
+            </div>
         </div>
     </div>
 
     <script>
-        const PRICING_TIERS = [
-            { limit: 50, price: 1984 },
-            { limit: 100, price: 2050 },
-            { limit: 200, price: 2380 },
-            { limit: 300, price: 2998 },
-            { limit: 400, price: 3350 },
-            { limit: Infinity, price: 3460 }
+        let currentMode = 'electric';
+
+        const ELECTRIC_TIERS = [
+            { label: '0-50', price: 1984 },
+            { label: '51-100', price: 2050 },
+            { label: '101-200', price: 2380 },
+            { label: '201-300', price: 2998 },
+            { label: '301-400', price: 3350 },
+            { label: '>400', price: 3460 }
+        ];
+
+        const WATER_TIERS = [
+            { label: '0-10', price: 5973 },
+            { label: '10-20', price: 7052 },
+            { label: '20-30', price: 8669 },
+            { label: '>30', price: 15929 }
         ];
 
         const NAMES = ["Nhà Thờ", "Cô Hà", "Chị Thu", "Hoàng Anh"];
+
+        function updatePriceBoard() {
+            const grid = document.getElementById('price-grid');
+            const unit = document.getElementById('price-unit');
+            const tiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
+            
+            unit.innerText = currentMode === 'electric' ? '(đ/kWh)' : '(đ/m3)';
+            
+            grid.innerHTML = tiers.map((t, index) => `
+                <div class="flex justify-between border-b border-blue-100/50 py-0.5">
+                    <span class="text-blue-900/60 font-medium">B${index+1} (${t.label}):</span>
+                    <span class="font-bold text-blue-900">${t.price.toLocaleString('vi-VN')}</span>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.getElementById('tab-electric').className = mode === 'electric' ? 'flex-1 py-3 text-sm uppercase tracking-wider tab-active transition-all' : 'flex-1 py-3 text-sm uppercase tracking-wider text-gray-500 border-b-2 border-transparent hover:text-blue-500 transition-all';
+            document.getElementById('tab-water').className = mode === 'water' ? 'flex-1 py-3 text-sm uppercase tracking-wider tab-active transition-all' : 'flex-1 py-3 text-sm uppercase tracking-wider text-gray-500 border-b-2 border-transparent hover:text-blue-500 transition-all';
+            
+            document.querySelectorAll('.unit-label').forEach(el => el.innerText = mode === 'electric' ? 'kWh' : 'm3');
+            document.getElementById('btn-calc').innerText = mode === 'electric' ? 'Tính Tiền Điện' : 'Tính Tiền Nước';
+            document.getElementById('btn-calc').className = mode === 'electric' ? 'w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95 mt-4 uppercase tracking-widest text-sm' : 'w-full bg-cyan-600 text-white font-black py-4 rounded-xl hover:bg-cyan-700 shadow-lg shadow-cyan-100 transition-all active:scale-95 mt-4 uppercase tracking-widest text-sm';
+            
+            updatePriceBoard();
+            document.getElementById('results').classList.add('hidden');
+        }
 
         function formatVND(amount) {
             return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
         }
 
-        function calculateSharedTiers() {
-            const VAT_RATE = 1.08; // Thuế VAT 8%
+        function calculate() {
+            // Chuyển đổi tier sang dạng limit cho logic tính toán
+            const rawTiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
+            const tiers = rawTiers.map((t, i) => {
+                let limit;
+                if (t.label.includes('>')) limit = Infinity;
+                else if (t.label.includes('-')) limit = parseInt(t.label.split('-')[1]);
+                else limit = Infinity;
+                return { limit, price: t.price };
+            });
+
+            const vatRate = currentMode === 'electric' ? 1.08 : 1.10; 
+            const unit = currentMode === 'electric' ? 'kWh' : 'm3';
+
             let members = [];
+            let totalUsage = 0;
             for (let i = 1; i <= 4; i++) {
+                let usage = parseFloat(document.getElementById(`val_${i}`).value) || 0;
                 members.push({
                     name: NAMES[i-1],
-                    usage: parseFloat(document.getElementById(`kwh_${i}`).value) || 0,
-                    remaining: parseFloat(document.getElementById(`kwh_${i}`).value) || 0,
+                    usage: usage,
+                    remaining: usage,
                     cost: 0
                 });
+                totalUsage += usage;
             }
 
             let prevLimit = 0;
-            // Duyệt qua từng bậc giá của hóa đơn tổng
-            for (let i = 0; i < PRICING_TIERS.length; i++) {
-                let tierCapacity = PRICING_TIERS[i].limit - prevLimit;
+            for (let i = 0; i < tiers.length; i++) {
+                let tierCapacity = tiers[i].limit === Infinity ? Infinity : (tiers[i].limit - prevLimit);
                 
                 while (tierCapacity > 0) {
                     let activeMembers = members.filter(m => m.remaining > 0);
@@ -112,47 +202,53 @@
                     activeMembers.forEach(m => {
                         let take = Math.min(m.remaining, share);
                         if (take > 0) {
-                            m.cost += take * PRICING_TIERS[i].price;
+                            m.cost += take * tiers[i].price;
                             m.remaining -= take;
                             tierCapacity -= take;
                             consumptionInThisTurn = true;
                         }
                     });
-
                     if (!consumptionInThisTurn) break;
                 }
-                
-                prevLimit = PRICING_TIERS[i].limit;
+                prevLimit = tiers[i].limit;
                 if (members.every(m => m.remaining <= 0)) break;
             }
 
-            // Hiển thị kết quả
             let billListHtml = "";
-            let grandTotal = 0;
+            let grandTotalFinal = 0;
 
             members.forEach(m => {
-                // Tính toán bao gồm thuế VAT
-                const totalFinal = Math.round(m.cost * VAT_RATE);
-                grandTotal += totalFinal;
+                const totalFinal = Math.round(m.cost * vatRate);
+                grandTotalFinal += totalFinal;
                 billListHtml += `
-                    <div class="flex justify-between items-center border-b pb-2">
+                    <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <div>
-                            <p class="font-bold text-gray-800 text-sm">${m.name}</p>
-                            <p class="text-xs text-gray-500">${m.usage} kWh</p>
+                            <p class="font-black text-gray-800 text-sm uppercase tracking-tight">${m.name}</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase">${m.usage} ${unit}</p>
                         </div>
                         <div class="text-right">
-                            <p class="font-bold text-blue-700">${formatVND(totalFinal)}</p>
+                            <p class="font-black text-blue-600 text-lg tracking-tighter">${formatVND(totalFinal)}</p>
                         </div>
                     </div>
                 `;
             });
 
+            document.getElementById('total_usage').innerText = totalUsage + " " + unit;
             document.getElementById('bill_list').innerHTML = billListHtml;
-            document.getElementById('grand_total').innerText = formatVND(grandTotal);
+            document.getElementById('grand_total').innerText = formatVND(grandTotalFinal);
+            document.getElementById('vat-note').innerText = currentMode === 'electric' 
+                ? "* Bao gồm 8% VAT" 
+                : "* Bao gồm thuế phí nước sinh hoạt";
             document.getElementById('results').classList.remove('hidden');
         }
+
+        // Khởi tạo bảng giá ban đầu
+        updatePriceBoard();
     </script>
 </body>
 </html>
+
+```
+
 
 
