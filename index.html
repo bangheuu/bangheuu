@@ -119,11 +119,12 @@
             { label: '>400', price: 3460 }
         ];
 
+        // Cập nhật giá nước theo lộ trình mới nhất
         const WATER_TIERS = [
-            { label: '0-10', price: 5973 },
-            { label: '10-20', price: 7052 },
-            { label: '20-30', price: 8669 },
-            { label: '>30', price: 15929 }
+            { label: '0-10', price: 8500 },
+            { label: '10-20', price: 9900 },
+            { label: '20-30', price: 12000 },
+            { label: '>30', price: 29000 }
         ];
 
         const NAMES = ["Nhà Thờ", "Cô Hà", "Chị Thu", "Hoàng Anh"];
@@ -161,7 +162,6 @@
         }
 
         function calculate() {
-            // Chuyển đổi tier sang dạng limit cho logic tính toán
             const rawTiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
             const tiers = rawTiers.map((t, i) => {
                 let limit;
@@ -237,11 +237,10 @@
             document.getElementById('grand_total').innerText = formatVND(grandTotalFinal);
             document.getElementById('vat-note').innerText = currentMode === 'electric' 
                 ? "* Bao gồm 8% VAT" 
-                : "* Bao gồm thuế phí nước sinh hoạt";
+                : "* Bao gồm ~10% thuế phí nước sinh hoạt";
             document.getElementById('results').classList.remove('hidden');
         }
 
-        // Khởi tạo bảng giá ban đầu
         updatePriceBoard();
     </script>
 </body>
