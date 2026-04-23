@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tính Điện Nước 4 Hộ</title>
+    <title>Tính Điện Nước 4 Hộ - Đội Cấn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -11,237 +11,367 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         .tab-active {
-            border-bottom: 3px solid #3b82f6;
+            border-bottom: 4px solid #3b82f6;
             color: #3b82f6;
-            font-weight: bold;
+            font-weight: 900;
         }
         .input-focus:focus {
             border-color: #3b82f6;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-open .accordion-content {
+            max-height: 1000px;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 2s infinite;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+<body class="p-4 md:p-8 pb-24">
+    <div class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
         <!-- Header & Tabs -->
         <div class="bg-white border-b">
-            <h1 class="text-xl font-black text-center py-6 text-gray-800 uppercase tracking-widest">Chi Phí Điện Nước</h1>
+            <h1 class="text-2xl font-black text-center py-6 text-gray-800 uppercase tracking-tighter">Chi Phí Điện Nước</h1>
             <div class="flex">
-                <button onclick="switchTab('electric')" id="tab-electric" class="flex-1 py-3 text-sm uppercase tracking-wider tab-active transition-all">
+                <button onclick="switchMode('electric')" id="tab-electric" class="flex-1 py-4 text-base uppercase tracking-wider transition-all">
                     ⚡ Điện
                 </button>
-                <button onclick="switchTab('water')" id="tab-water" class="flex-1 py-3 text-sm uppercase tracking-wider text-gray-500 hover:text-blue-500 transition-all border-b-2 border-transparent">
+                <button onclick="switchMode('water')" id="tab-water" class="flex-1 py-4 text-base uppercase tracking-wider transition-all">
                     💧 Nước
+                </button>
+                <button onclick="switchMode('history')" id="tab-history" class="flex-1 py-4 text-base uppercase tracking-wider text-gray-500 border-b-2 border-transparent hover:text-blue-500 transition-all">
+                    📜 Lịch sử
                 </button>
             </div>
         </div>
 
         <div class="p-6">
-            <!-- Hiển thị bảng giá các bậc -->
-            <div id="price-board" class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-[10px] font-black text-blue-800 uppercase tracking-widest">Biểu giá áp dụng</span>
-                    <span id="price-unit" class="text-[10px] text-blue-600 font-bold uppercase">(đ/kWh)</span>
+            <!-- SECTION: CALCULATOR -->
+            <div id="section-calc">
+                <!-- Cảnh báo thuế -->
+                <div id="tax-alert" class="hidden mb-5 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-xl flex items-center gap-3 animate-pulse-soft">
+                    <span class="text-xl">📢</span>
+                    <p class="text-[11px] text-yellow-900 font-bold leading-tight">Lưu ý: Nếu giá thuế thay đổi (VD: EVN tăng thuế), hãy chỉnh ô nhập bên dưới để kết quả chính xác.</p>
                 </div>
-                <div id="price-grid" class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-gray-700">
-                    <!-- Nội dung giá sẽ được cập nhật bằng JS -->
+
+                <!-- Bảng giá & Cấu hình thuế -->
+                <div id="price-board" class="mb-6 p-5 bg-blue-50 rounded-2xl border border-blue-100 shadow-inner">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-black text-blue-800 uppercase tracking-widest">Biểu giá & Thuế</span>
+                        <div class="flex items-center gap-2 group">
+                            <span class="text-[10px] text-blue-500 font-black uppercase">Thuế:</span>
+                            <input type="number" id="tax-rate-input" oninput="calculate()" class="w-14 text-center text-sm bg-white border-2 border-blue-200 rounded-xl py-1 font-black text-blue-700 input-focus" value="8">
+                            <span class="text-[10px] text-blue-500 font-black">%</span>
+                        </div>
+                    </div>
+                    <div id="price-grid" class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-gray-700"></div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="space-y-5">
+                    <div id="input-fields" class="space-y-4">
+                        <!-- JS renders inputs -->
+                    </div>
+                    <button onclick="calculate()" id="btn-calc" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all active:scale-95 mt-4 uppercase tracking-widest text-base">
+                        Tính Tiền Điện
+                    </button>
+                </div>
+
+                <!-- Results -->
+                <div id="results" class="hidden mt-10 space-y-5 animate-in fade-in duration-500">
+                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm text-gray-600 flex justify-between items-center">
+                        <span class="font-bold">Tổng tiêu thụ (4 hộ):</span>
+                        <span id="total_usage" class="font-black text-gray-900 text-lg">0</span>
+                    </div>
+
+                    <div class="text-xs font-black text-gray-400 uppercase ml-1 mb-[-12px] tracking-widest">Chi tiết từng hộ</div>
+                    <div id="bill_list" class="space-y-4"></div>
+                    
+                    <div class="p-5 bg-gray-900 rounded-3xl flex justify-between items-center shadow-2xl border-t-4 border-yellow-500">
+                        <span class="text-white text-sm font-black uppercase tracking-widest">Tổng hóa đơn</span>
+                        <span id="grand_total" class="text-yellow-400 font-black text-2xl tracking-tighter">0đ</span>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="saveToHistory()" class="flex-1 bg-green-600 text-white font-black py-4 rounded-xl text-sm uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-100">
+                            💾 Lưu lịch sử
+                        </button>
+                        <button onclick="resetInputs()" class="bg-gray-200 text-gray-600 font-black py-4 px-6 rounded-xl text-xs uppercase hover:bg-gray-300">
+                            Làm mới
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Form Nhập Liệu -->
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Nhà Thờ</label>
-                        <div class="relative">
-                            <input type="number" id="val_1" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
-                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Cô Hà</label>
-                        <div class="relative">
-                            <input type="number" id="val_2" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
-                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Chị Thu</label>
-                        <div class="relative">
-                            <input type="number" id="val_3" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
-                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-black text-gray-400 uppercase mb-1 ml-1">Hoàng Anh</label>
-                        <div class="relative">
-                            <input type="number" id="val_4" class="w-full border rounded-xl p-3 input-focus bg-gray-50 font-semibold" placeholder="0">
-                            <span class="absolute right-3 top-3 text-gray-400 text-sm unit-label">kWh</span>
-                        </div>
-                    </div>
+            <!-- SECTION: HISTORY -->
+            <div id="section-history" class="hidden animate-in slide-in-from-right duration-300">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">Dữ liệu đã lưu</h2>
+                    <button onclick="clearAllHistory()" class="text-xs font-black text-red-500 uppercase hover:underline">Xóa tất cả</button>
                 </div>
-
-                <button onclick="calculate()" id="btn-calc" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95 mt-4 uppercase tracking-widest text-sm">
-                    Tính Tiền Điện
-                </button>
-            </div>
-
-            <!-- Kết quả -->
-            <div id="results" class="hidden mt-8 space-y-4 animate-in fade-in duration-500">
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-[11px] text-gray-600">
-                    <div class="flex justify-between">
-                        <span>Tổng tiêu thụ (4 hộ):</span>
-                        <span id="total_usage" class="font-bold text-gray-800">0</span>
-                    </div>
-                </div>
-
-                <div id="bill_list" class="space-y-3"></div>
-                
-                <div class="p-4 bg-gray-900 rounded-2xl flex justify-between items-center shadow-xl border-t-4 border-yellow-500">
-                    <span class="text-white text-xs font-bold uppercase tracking-widest">Tổng hóa đơn thực tế</span>
-                    <span id="grand_total" class="text-yellow-400 font-black text-xl tracking-tight">0đ</span>
-                </div>
-                <p id="vat-note" class="text-[10px] text-gray-400 text-center italic leading-tight"></p>
+                <div id="history-list" class="space-y-5"></div>
             </div>
         </div>
     </div>
 
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-8 py-4 rounded-full text-sm font-black shadow-2xl opacity-0 transition-opacity pointer-events-none z-50"></div>
+
     <script>
         let currentMode = 'electric';
-
-        const ELECTRIC_TIERS = [
-            { label: '0-50', price: 1984 },
-            { label: '51-100', price: 2050 },
-            { label: '101-200', price: 2380 },
-            { label: '201-300', price: 2998 },
-            { label: '301-400', price: 3350 },
-            { label: '>400', price: 3460 }
-        ];
-
-        // Cập nhật giá nước theo lộ trình mới nhất
-        const WATER_TIERS = [
-            { label: '0-10', price: 8500 },
-            { label: '10-20', price: 9900 },
-            { label: '20-30', price: 12000 },
-            { label: '>30', price: 29000 }
-        ];
-
+        let lastResult = null;
         const NAMES = ["Nhà Thờ", "Cô Hà", "Chị Thu", "Hoàng Anh"];
+        
+        const ELECTRIC_TIERS = [
+            { label: '0-50', price: 1984, limit: 50 },
+            { label: '51-100', price: 2050, limit: 100 },
+            { label: '101-200', price: 2380, limit: 200 },
+            { label: '201-300', price: 2998, limit: 300 },
+            { label: '301-400', price: 3350, limit: 400 },
+            { label: '>400', price: 3460, limit: Infinity }
+        ];
 
-        function updatePriceBoard() {
-            const grid = document.getElementById('price-grid');
-            const unit = document.getElementById('price-unit');
-            const tiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
-            
-            unit.innerText = currentMode === 'electric' ? '(đ/kWh)' : '(đ/m3)';
-            
-            grid.innerHTML = tiers.map((t, index) => `
-                <div class="flex justify-between border-b border-blue-100/50 py-0.5">
-                    <span class="text-blue-900/60 font-medium">B${index+1} (${t.label}):</span>
-                    <span class="font-bold text-blue-900">${t.price.toLocaleString('vi-VN')}</span>
+        const WATER_TIERS = [
+            { label: '0-10', price: 8500, limit: 10 },
+            { label: '10-20', price: 9900, limit: 20 },
+            { label: '20-30', price: 12000, limit: 30 },
+            { label: '>30', price: 29000, limit: Infinity }
+        ];
+
+        function renderInputs() {
+            const container = document.getElementById('input-fields');
+            container.innerHTML = NAMES.map((name, i) => `
+                <div>
+                    <label class="block text-xs font-black text-gray-500 uppercase mb-2 ml-1 tracking-wider">${name}</label>
+                    <div class="relative">
+                        <input type="number" id="val_${i+1}" class="w-full border-2 border-gray-100 rounded-2xl p-4 input-focus bg-gray-50 font-black text-lg text-gray-800" placeholder="0">
+                        <span class="absolute right-4 top-5 text-gray-400 text-sm font-bold uppercase tracking-widest unit-label">${currentMode === 'electric' ? 'kWh' : 'm³'}</span>
+                    </div>
                 </div>
             `).join('');
         }
 
-        function switchTab(mode) {
-            currentMode = mode;
-            document.getElementById('tab-electric').className = mode === 'electric' ? 'flex-1 py-3 text-sm uppercase tracking-wider tab-active transition-all' : 'flex-1 py-3 text-sm uppercase tracking-wider text-gray-500 border-b-2 border-transparent hover:text-blue-500 transition-all';
-            document.getElementById('tab-water').className = mode === 'water' ? 'flex-1 py-3 text-sm uppercase tracking-wider tab-active transition-all' : 'flex-1 py-3 text-sm uppercase tracking-wider text-gray-500 border-b-2 border-transparent hover:text-blue-500 transition-all';
+        function updatePriceBoard() {
+            const grid = document.getElementById('price-grid');
+            const alert = document.getElementById('tax-alert');
+            const tiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
+            const taxInput = document.getElementById('tax-rate-input');
             
-            document.querySelectorAll('.unit-label').forEach(el => el.innerText = mode === 'electric' ? 'kWh' : 'm3');
-            document.getElementById('btn-calc').innerText = mode === 'electric' ? 'Tính Tiền Điện' : 'Tính Tiền Nước';
-            document.getElementById('btn-calc').className = mode === 'electric' ? 'w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95 mt-4 uppercase tracking-widest text-sm' : 'w-full bg-cyan-600 text-white font-black py-4 rounded-xl hover:bg-cyan-700 shadow-lg shadow-cyan-100 transition-all active:scale-95 mt-4 uppercase tracking-widest text-sm';
-            
-            updatePriceBoard();
-            document.getElementById('results').classList.add('hidden');
+            taxInput.value = currentMode === 'electric' ? 8 : 10;
+            alert.classList.remove('hidden');
+
+            grid.innerHTML = tiers.map((t, index) => `
+                <div class="flex justify-between border-b border-blue-100/50 py-1">
+                    <span class="text-blue-900/60 font-bold uppercase text-[10px]">Bậc ${index+1}:</span>
+                    <span class="font-black text-blue-900">${t.price.toLocaleString('vi-VN')}đ</span>
+                </div>
+            `).join('');
+        }
+
+        function switchMode(mode) {
+            const tabs = ['electric', 'water', 'history'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if(btn) btn.className = (t === mode) ? 'flex-1 py-4 text-base uppercase tracking-wider tab-active transition-all' : 'flex-1 py-4 text-base uppercase tracking-wider text-gray-400 border-b-2 border-transparent hover:text-blue-500 transition-all font-bold';
+            });
+
+            if (mode === 'history') {
+                document.getElementById('section-calc').classList.add('hidden');
+                document.getElementById('section-history').classList.remove('hidden');
+                renderHistory();
+            } else {
+                currentMode = mode;
+                document.getElementById('section-calc').classList.remove('hidden');
+                document.getElementById('section-history').classList.add('hidden');
+                renderInputs();
+                updatePriceBoard();
+                document.getElementById('btn-calc').innerText = mode === 'electric' ? 'Tính Tiền Điện' : 'Tính Tiền Nước';
+                document.getElementById('btn-calc').className = `w-full ${mode === 'electric' ? 'bg-blue-600 shadow-blue-200' : 'bg-cyan-600 shadow-cyan-200'} text-white font-black py-5 rounded-2xl shadow-xl transition-all active:scale-95 mt-4 uppercase tracking-widest text-base`;
+                document.getElementById('results').classList.add('hidden');
+            }
         }
 
         function formatVND(amount) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(amount);
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(`member-${id}`);
+            el.classList.toggle('accordion-open');
         }
 
         function calculate() {
-            const rawTiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
-            const tiers = rawTiers.map((t, i) => {
-                let limit;
-                if (t.label.includes('>')) limit = Infinity;
-                else if (t.label.includes('-')) limit = parseInt(t.label.split('-')[1]);
-                else limit = Infinity;
-                return { limit, price: t.price };
+            const tiers = currentMode === 'electric' ? ELECTRIC_TIERS : WATER_TIERS;
+            const taxPercent = parseFloat(document.getElementById('tax-rate-input').value) || 0;
+            const vatRate = 1 + (taxPercent / 100);
+            const unit = currentMode === 'electric' ? 'kWh' : 'm³';
+
+            let members = NAMES.map((name, i) => {
+                let val = parseFloat(document.getElementById(`val_${i+1}`).value) || 0;
+                return { name, usage: val, remaining: val, cost: 0, breakdowns: [] };
             });
 
-            const vatRate = currentMode === 'electric' ? 1.08 : 1.10; 
-            const unit = currentMode === 'electric' ? 'kWh' : 'm3';
-
-            let members = [];
-            let totalUsage = 0;
-            for (let i = 1; i <= 4; i++) {
-                let usage = parseFloat(document.getElementById(`val_${i}`).value) || 0;
-                members.push({
-                    name: NAMES[i-1],
-                    usage: usage,
-                    remaining: usage,
-                    cost: 0
-                });
-                totalUsage += usage;
-            }
-
+            let totalUsage = members.reduce((sum, m) => sum + m.usage, 0);
             let prevLimit = 0;
+
             for (let i = 0; i < tiers.length; i++) {
-                let tierCapacity = tiers[i].limit === Infinity ? Infinity : (tiers[i].limit - prevLimit);
+                let tierLimit = tiers[i].limit;
+                let tierPrice = tiers[i].price;
+                let tierCapacity = tierLimit === Infinity ? Infinity : (tierLimit - prevLimit);
                 
                 while (tierCapacity > 0) {
                     let activeMembers = members.filter(m => m.remaining > 0);
                     if (activeMembers.length === 0) break;
 
                     let share = tierCapacity / activeMembers.length;
-                    let consumptionInThisTurn = false;
+                    let progress = false;
 
                     activeMembers.forEach(m => {
                         let take = Math.min(m.remaining, share);
                         if (take > 0) {
-                            m.cost += take * tiers[i].price;
+                            let costThisTier = take * tierPrice;
+                            m.cost += costThisTier;
                             m.remaining -= take;
                             tierCapacity -= take;
-                            consumptionInThisTurn = true;
+                            
+                            let existing = m.breakdowns.find(b => b.tierIndex === i + 1);
+                            if (existing) {
+                                existing.amount += take;
+                                existing.cost += costThisTier;
+                            } else {
+                                m.breakdowns.push({ tierIndex: i + 1, price: tierPrice, amount: take, cost: costThisTier });
+                            }
+                            progress = true;
                         }
                     });
-                    if (!consumptionInThisTurn) break;
+                    if (!progress) break;
                 }
-                prevLimit = tiers[i].limit;
-                if (members.every(m => m.remaining <= 0)) break;
+                prevLimit = tierLimit;
             }
 
             let billListHtml = "";
             let grandTotalFinal = 0;
+            let resultsData = [];
 
-            members.forEach(m => {
+            members.forEach((m, idx) => {
                 const totalFinal = Math.round(m.cost * vatRate);
                 grandTotalFinal += totalFinal;
-                billListHtml += `
-                    <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
-                        <div>
-                            <p class="font-black text-gray-800 text-sm uppercase tracking-tight">${m.name}</p>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase">${m.usage} ${unit}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-black text-blue-600 text-lg tracking-tighter">${formatVND(totalFinal)}</p>
-                        </div>
+                resultsData.push({ name: m.name, usage: m.usage, cost: totalFinal });
+                
+                let breakdownHtml = m.breakdowns.map(b => `
+                    <div class="flex justify-between text-xs py-2 border-b border-gray-100 font-black">
+                        <span class="text-gray-500 uppercase tracking-tighter">Bậc ${b.tierIndex}: <span class="text-gray-900">${b.amount.toFixed(2)} ${unit}</span></span>
+                        <span class="text-gray-900">${Math.round(b.cost).toLocaleString()}đ</span>
                     </div>
-                `;
+                `).join('');
+
+                billListHtml += `
+                    <div id="member-${idx}" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                        <div onclick="toggleAccordion(${idx})" class="p-5 flex justify-between items-center cursor-pointer active:bg-gray-100 transition-colors">
+                            <div>
+                                <p class="font-black text-gray-900 text-base uppercase tracking-tight">${m.name}</p>
+                                <p class="text-[11px] font-black text-gray-400 uppercase tracking-widest">${m.usage} ${unit}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-black ${currentMode === 'electric' ? 'text-blue-600' : 'text-cyan-600'} text-xl tracking-tighter">${formatVND(totalFinal)}</p>
+                                <p class="text-[9px] text-gray-400 font-black uppercase italic -mt-1">+${taxPercent}% THUẾ</p>
+                            </div>
+                        </div>
+                        <div class="accordion-content bg-white px-5 border-t border-gray-50">
+                            <div class="py-4">
+                                <div class="text-[10px] font-black text-gray-300 uppercase mb-2">Chi tiết bậc thang (Đã chia sẻ)</div>
+                                ${breakdownHtml}
+                                <div class="flex justify-between text-xs pt-3 mt-1 border-t-2 border-dashed border-gray-100 font-black text-gray-400 uppercase">
+                                    <span>Giá trước thuế:</span>
+                                    <span class="text-gray-600">${Math.round(m.cost).toLocaleString()}đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
             });
 
-            document.getElementById('total_usage').innerText = totalUsage + " " + unit;
+            document.getElementById('total_usage').innerText = totalUsage.toFixed(1) + " " + unit;
             document.getElementById('bill_list').innerHTML = billListHtml;
             document.getElementById('grand_total').innerText = formatVND(grandTotalFinal);
-            document.getElementById('vat-note').innerText = currentMode === 'electric' 
-                ? "* Bao gồm 8% VAT" 
-                : "* Bao gồm ~10% thuế phí nước sinh hoạt";
             document.getElementById('results').classList.remove('hidden');
+
+            lastResult = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('vi-VN'),
+                type: currentMode,
+                totalUsage,
+                grandTotal: grandTotalFinal,
+                details: resultsData
+            };
         }
 
-        updatePriceBoard();
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 2000);
+        }
+
+        function saveToHistory() {
+            if (!lastResult) return;
+            let history = JSON.parse(localStorage.getItem('billing_history') || '[]');
+            history.unshift(lastResult);
+            localStorage.setItem('billing_history', JSON.stringify(history));
+            showToast("Đã lưu vào lịch sử thành công!");
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            let history = JSON.parse(localStorage.getItem('billing_history') || '[]');
+            if (history.length === 0) {
+                list.innerHTML = `<div class="text-center py-16 text-gray-400 text-sm font-bold italic uppercase tracking-widest">Trống</div>`;
+                return;
+            }
+            list.innerHTML = history.map(item => `
+                <div class="bg-white border-2 rounded-3xl overflow-hidden shadow-md relative">
+                    <div class="bg-gray-50 px-5 py-3 border-b flex justify-between items-center text-xs font-black uppercase tracking-widest ${item.type === 'electric' ? 'text-blue-600' : 'text-cyan-600'}">
+                        <span>${item.type === 'electric' ? '⚡ Điện' : '💧 Nước'} • ${item.date}</span>
+                        <button onclick="deleteHistory(${item.id})" class="text-red-400 text-2xl hover:text-red-600 transition-colors">×</button>
+                    </div>
+                    <div class="p-5">
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            ${item.details.map(d => `<div class="text-[11px]"><span class="text-gray-400 uppercase font-black tracking-tighter">${d.name}:</span> <span class="text-gray-900 font-black">${formatVND(d.cost)}</span></div>`).join('')}
+                        </div>
+                        <div class="pt-3 border-t-2 border-gray-50 flex justify-between items-center font-black text-gray-900 text-lg tracking-tighter">
+                            <span class="text-[10px] text-gray-400 uppercase tracking-widest">Tổng:</span>
+                            ${formatVND(item.grandTotal)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteHistory(id) {
+            let history = JSON.parse(localStorage.getItem('billing_history') || '[]');
+            localStorage.setItem('billing_history', JSON.stringify(history.filter(i => i.id !== id)));
+            renderHistory();
+        }
+
+        function clearAllHistory() { if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử?")) { localStorage.removeItem('billing_history'); renderHistory(); } }
+
+        function resetInputs() {
+            NAMES.forEach((_, i) => {
+                const input = document.getElementById(`val_${i+1}`);
+                if(input) input.value = '';
+            });
+            document.getElementById('results').classList.add('hidden');
+            lastResult = null;
+        }
+
+        window.onload = () => switchMode('electric');
     </script>
 </body>
 </html>
