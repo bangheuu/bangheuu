@@ -104,7 +104,7 @@
             <div id="section-history" class="hidden">
                 <div class="flex justify-between items-center mb-6 px-1">
                     <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest italic">Lịch sử thu tiền</h2>
-                    <button onclick="clearAllHistory()" class="text-xs font-black text-red-500 uppercase hover:underline">Xóa tất cả</button>
+                    <!-- Đã loại bỏ nút Xóa tất cả tại đây -->
                 </div>
                 <div id="history-list" class="space-y-4"></div>
             </div>
@@ -405,7 +405,7 @@
                                     <div class="text-xl text-yellow-400 tracking-tighter">${formatVND(item.grandTotal)}</div>
                                 </div>
                             </div>
-                            <button onclick="deleteHistory(${item.id})" class="w-full mt-4 text-[10px] font-black text-red-400 uppercase tracking-widest p-2">Xóa bản ghi này</button>
+                            <button onclick="deleteHistory(${item.id})" class="w-full mt-4 text-[10px] font-black text-red-400 uppercase tracking-widest p-2 border border-red-100 rounded-xl hover:bg-red-50">Xóa bản ghi này</button>
                         </div>
                     </div>
                 </div>`;
@@ -419,12 +419,8 @@
             renderHistory();
         }
 
-        function clearAllHistory() { 
-            if(confirm("Xóa toàn bộ lịch sử?")) { 
-                localStorage.removeItem('billing_history_final_v1'); 
-                renderHistory(); 
-            } 
-        }
+        // Đã vô hiệu hóa nút xóa tất cả ngoài giao diện nhưng giữ lại hàm này để code không lỗi
+        function clearAllHistory() { }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
