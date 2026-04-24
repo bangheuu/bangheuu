@@ -42,7 +42,7 @@
                 <button onclick="switchMode('water')" id="tab-water" class="flex-1 py-4 text-base uppercase tracking-wider transition-all">
                     💧 Nước
                 </button>
-                <button onclick="switchMode('history')" id="tab-history" class="flex-1 py-4 text-base uppercase tracking-wider text-gray-400 border-b-2 border-transparent hover:text-blue-500 transition-all font-bold">
+                <button onclick="switchMode('history')" id="tab-history" class="flex-1 py-4 text-base uppercase tracking-wider transition-all">
                     📜 Lịch sử
                 </button>
             </div>
@@ -99,8 +99,8 @@
 
             <!-- SECTION: HISTORY -->
             <div id="section-history" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">Lịch sử thu tiền</h2>
+                <div class="flex justify-between items-center mb-6 px-1">
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest uppercase italic">Lịch sử thu tiền</h2>
                     <button onclick="clearAllHistory()" class="text-xs font-black text-red-500 uppercase hover:underline">Xóa tất cả</button>
                 </div>
                 <div id="history-list" class="space-y-4"></div>
@@ -290,7 +290,7 @@
                             </div>
                             <div class="text-right">
                                 <p class="font-black ${currentMode === 'electric' ? 'text-blue-600' : 'text-cyan-600'} text-xl tracking-tighter">${formatVND(totalWithTax)}</p>
-                                <p class="text-[9px] text-gray-400 font-black uppercase italic -mt-1">+${taxPercent}% THUẾ</p>
+                                <p class="text-[9px] text-gray-400 font-black uppercase italic -mt-1">Đã bao gồm ${taxPercent}% thuế</p>
                             </div>
                         </div>
                         <div class="accordion-content bg-white px-5 border-t border-gray-50">
@@ -351,22 +351,13 @@
                     <div class="border-b last:border-0 border-gray-100 py-3">
                         <div class="flex justify-between items-center mb-1">
                             <span class="font-black text-gray-800 uppercase text-xs">${d.name}</span>
-                            <span class="font-black text-gray-900">${formatVND(d.costWithTax)}</span>
+                            <div class="text-right">
+                                <span class="font-black text-gray-900">${formatVND(d.costWithTax)}</span>
+                                <div class="text-[8px] font-black text-gray-400 uppercase italic tracking-tighter">Đã bao gồm ${item.taxRate}% thuế</div>
+                            </div>
                         </div>
                         <div class="text-[9px] font-black text-gray-400 uppercase tracking-tighter mb-2 italic">
                             Số cũ: ${d.oldVal || 0} → Số mới: ${d.newVal || 0} (${d.usage.toFixed(1)} ${unit})
-                        </div>
-                        <div class="space-y-1">
-                            ${d.breakdowns.map(b => `
-                                <div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase italic tracking-tighter">
-                                    <span>Bậc ${b.tierIndex} (${b.amount.toFixed(1)} x ${b.price.toLocaleString()}đ)</span>
-                                    <span>${Math.round(b.cost).toLocaleString()}đ</span>
-                                </div>
-                            `).join('')}
-                            <div class="flex justify-between text-[10px] pt-1 text-gray-900 font-black uppercase">
-                                <span>Tiêu thụ:</span>
-                                <span>${d.usage.toFixed(1)} ${unit}</span>
-                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -386,7 +377,7 @@
                         </div>
                         <div class="text-right">
                             <p class="font-black ${colorClass} text-lg tracking-tighter">${formatVND(item.grandTotal)}</p>
-                            <span class="text-[9px] font-black text-gray-300 uppercase">${item.fullDate}</span>
+                            <span class="text-[9px] font-black text-gray-300 uppercase italic">Đã bao gồm ${item.taxRate}% thuế</span>
                         </div>
                     </div>
                     
@@ -396,11 +387,11 @@
                             ${detailCards}
                             <div class="mt-4 p-4 bg-gray-900 rounded-2xl text-white flex justify-between items-center shadow-lg">
                                 <div class="text-[10px] font-black text-gray-400 uppercase">
-                                    <div>Khu vực: ${item.totalUsage.toFixed(1)} ${unit}</div>
-                                    <div>Thuế suất: ${item.taxRate}%</div>
+                                    <div>Tiêu thụ khu: ${item.totalUsage.toFixed(1)} ${unit}</div>
+                                    <div class="italic">Ngày lưu: ${item.fullDate}</div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-[10px] font-black uppercase text-yellow-500 italic">Tổng thu (VAT)</div>
+                                    <div class="text-[10px] font-black uppercase text-yellow-500 italic">Tổng thu (+${item.taxRate}% thuế)</div>
                                     <div class="text-xl font-black text-yellow-400 tracking-tighter">${formatVND(item.grandTotal)}</div>
                                 </div>
                             </div>
